@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import History from "./components/History";
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
@@ -32,6 +32,25 @@ export default function Home() {
   const [aspectRatio, setAspectRatio] = useState("1:1");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState("");
+
+  const [theme, setTheme] = useState("light");
+  const [themeReady, setThemeReady] = useState(false);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("fomi-theme") || "light";
+
+    setTheme(savedTheme);
+    document.documentElement.dataset.theme = savedTheme;
+    setThemeReady(true);
+  }, []);
+
+  function toggleTheme() {
+    const newTheme = theme === "light" ? "dark" : "light";
+
+    setTheme(newTheme);
+    localStorage.setItem("fomi-theme", newTheme);
+    document.documentElement.dataset.theme = newTheme;
+  }
 
   async function handleGenerate() {
     const cleanPrompt = prompt.trim();
@@ -90,17 +109,24 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#101014] p-0 text-white">
+    <div
+      className={`min-h-screen p-0 transition-colors duration-300 ${theme === "dark"
+          ? "bg-[#101014] text-white"
+          : "bg-[#FAF7F4] text-stone-900"
+        }`}
+    >
 
-      <Header />
+      <Header theme={theme} toggleTheme={toggleTheme} />
 
 
-      <History historyImages={historyImages} />
+      <History historyImages={historyImages} theme={theme} />
 
 
-      <div className="grid min-h-[calc(100vh-116px)] grid-cols-1 bg-[#FAF7F4] md:grid-cols-[240px_220px_minmax(0,1fr)]">
+      <div className={`grid min-h-[calc(100vh-116px)] grid-cols-1 transition-colors duration-300 md:grid-cols-[240px_220px_minmax(0,1fr)] ${theme === "dark" ? "bg-[#18181D]" : "bg-[#FAF7F4]"
+        }`}>
 
         <Sidebar
+          theme={theme}
           prompt={prompt}
           setPrompt={setPrompt}
           generationError={generationError}
@@ -115,12 +141,14 @@ export default function Home() {
         />
 
         <PromptPanel
+          theme={theme}
           images={images}
           videos={videos}
           generationMode={generationMode}
         />
 
         <Gallery
+          theme={theme}
           images={images}
           videos={videos}
           aspectRatio={aspectRatio}
